@@ -1,16 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import { AuthService } from 'src/auth/auth.service';
 // import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import * as bcrypt from 'bcrypt';
-import * as jwt from 'jsonwebtoken';
 import { Model } from 'mongoose';
 import { User } from './schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class UserService {
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private authService: AuthService,
+  ) {}
 
   // for the login purpose
   async login(loginUserDto: LoginUserDto) {
@@ -28,9 +31,7 @@ export class UserService {
 
       const payload = { userId: user._id, email: user.email };
 
-      const token = jwt.sign(payload, process.env.JWT_SECRET, {
-        expiresIn: '72h',
-      });
+      const token = this.authService.generateToken(payload);
 
       return { user: user, success: true, token: token };
     } catch (error) {
@@ -63,6 +64,94 @@ export class UserService {
       };
     } catch (error) {
       console.error('error', error);
+      return { success: false, message: 'internal server error' };
+    }
+  }
+
+  // for searching and finding the user
+  async findUser(email: string) {
+    try {
+      const user = await this.userModel.findOne({ email: email });
+      if (!user) {
+        return { success: false, message: 'user not found' };
+      }
+      return { data: user, success: true, message: 'user found' };
+    } catch (error) {
+      console.error('error', error);
+      return { success: false, message: 'internal server error' };
+    }
+  }
+
+  // for adding the user to the contact list
+  async addContact(userId: string, friendId: string) {
+    try {
+      const user = await this.userModel.findOne({ _id: userId });
+      if (!user) {
+        return { success: false, message: 'user not found' };
+      }
+      const updatedUser = await this.userModel.findByIdAndUpdate(
+        { _id: userId },
+        { $addToSet: { contacts: friendId } },
+        { new: true },
+      );
+      if (!updatedUser) {
+        return { success: false, message: 'updating failed' };
+      }
+      return {
+        data: updatedUser,
+        success: true,
+        message: 'friend added to the user',
+      };
+    } catch (error) {
+      console.error('error', error);
+      return { success: false, message: 'internal server error' };
+    }
+  }
+
+  // for removing the user from the contact list
+  async removeFromContact(userId: string, friendId: string) {
+    try {
+      const user = await this.userModel.findById({ _id: userId });
+      if (!user) {
+        return { success: false, message: 'user not found' };
+      }
+      const updatedUser = await this.userModel.findByIdAndUpdate(
+        { _id: userId },
+        { $pull: { contacts: friendId } },
+        { new: true },
+      );
+      if (!updatedUser) {
+        return { success: false, message: 'user not removed' };
+      }
+      return {
+        data: updatedUser,
+        message: 'user removed from the contact',
+        success: true,
+      };
+    } catch (error) {
+      console.error('error', error);
+      return { success: false, message: 'internal server error' };
+    }
+  }
+
+  // for getting the contact list of the users
+  async getContact(id: string) {
+    try {
+      const user = await this.userModel
+        .findById({ _id: id })
+        .populate('contacts');
+
+      if (!user) {
+        return { success: false, message: 'user not found' };
+      }
+      return {
+        data: user.contacts,
+        message: 'user contact list',
+        success: true,
+      };
+    } catch (error) {
+      console.error('error', error);
+      return { success: false, message: 'internal server error' };
     }
   }
 
