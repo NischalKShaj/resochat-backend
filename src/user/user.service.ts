@@ -1,3 +1,4 @@
+// import the required modules
 import { Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { AuthService } from 'src/auth/auth.service';
@@ -23,7 +24,10 @@ export class UserService {
       if (!user) {
         return { success: false, message: 'user not found' };
       }
-      const password = bcrypt.compare(loginUserDto.password, user.password);
+      const password = await bcrypt.compare(
+        loginUserDto.password,
+        user.password,
+      );
       console.log('password', password);
       if (!password) {
         return { success: false, message: 'password not matching' };
@@ -43,7 +47,7 @@ export class UserService {
   // for creating new user
   async create(createUserDto: CreateUserDto) {
     try {
-      const hashedPassword = bcrypt.hashSync(createUserDto.password, 10);
+      const hashedPassword = await bcrypt.hashSync(createUserDto.password, 10);
 
       const existingUser = await this.userModel.findOne({
         email: createUserDto.email,
@@ -69,9 +73,14 @@ export class UserService {
   }
 
   // for searching and finding the user
-  async findUser(email: string) {
+  async findUser(identifier: string) {
     try {
-      const user = await this.userModel.findOne({ email: email });
+      const user = await this.userModel.findOne({
+        $or: [
+          { email: new RegExp('^' + identifier + '$', 'i') },
+          { user: new RegExp('^' + identifier + '$', 'i') },
+        ],
+      });
       if (!user) {
         return { success: false, message: 'user not found' };
       }

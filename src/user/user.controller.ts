@@ -1,3 +1,6 @@
+// file to create the controller for the user related access
+
+// import the required modules
 import {
   Controller,
   Get,
@@ -27,9 +30,10 @@ export class UserController {
   async login(@Body() loginUserDto: LoginUserDto, @Res() res: Response) {
     try {
       const result = await this.userService.login(loginUserDto);
+      console.log('result', result);
       if (!result.success) {
         console.log('inside');
-        res.status(HttpStatus.BAD_REQUEST).json(result);
+        return res.status(HttpStatus.BAD_REQUEST).json(result);
       }
       res.status(HttpStatus.ACCEPTED).json(result);
     } catch (error) {
@@ -56,10 +60,13 @@ export class UserController {
 
   // for finding the specific user by the email
   @UseGuards(JwtAuthGuard)
-  @Get('search/:email')
-  async findUser(@Param('email') email: string, @Res() res: Response) {
+  @Get('search/:identifier')
+  async findUser(
+    @Param('identifier') identifier: string,
+    @Res() res: Response,
+  ) {
     try {
-      const result = await this.userService.findUser(email);
+      const result = await this.userService.findUser(identifier);
       if (!result.success) {
         res.status(HttpStatus.BAD_REQUEST).json(result);
       }

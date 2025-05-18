@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { ChatModule } from './chat/chat.module';
 import mongoose from 'mongoose';
 
 @Module({
@@ -20,6 +21,7 @@ import mongoose from 'mongoose';
       inject: [ConfigService],
     }),
     UserModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [AppService],
