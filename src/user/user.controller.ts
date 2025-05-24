@@ -30,12 +30,10 @@ export class UserController {
   async login(@Body() loginUserDto: LoginUserDto, @Res() res: Response) {
     try {
       const result = await this.userService.login(loginUserDto);
-      console.log('result', result);
       if (!result.success) {
-        console.log('inside');
         return res.status(HttpStatus.BAD_REQUEST).json(result);
       }
-      res.status(HttpStatus.ACCEPTED).json(result);
+      res.status(HttpStatus.OK).json(result);
     } catch (error) {
       console.error('error', error);
     }
