@@ -31,7 +31,7 @@ export class UserController {
     try {
       const result = await this.userService.login(loginUserDto);
       if (!result.success) {
-        return res.status(HttpStatus.BAD_REQUEST).json(result);
+        return res.status(HttpStatus.BAD_REQUEST).json(result.message);
       }
       res.status(HttpStatus.OK).json(result);
     } catch (error) {
@@ -44,10 +44,26 @@ export class UserController {
   async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     try {
       const result = await this.userService.create(createUserDto);
+      console.log('result', result);
       if (!result.success) {
-        res.status(HttpStatus.BAD_REQUEST).json(result);
+        return res.status(HttpStatus.BAD_REQUEST).json(result);
       }
       res.status(HttpStatus.CREATED).json(result);
+    } catch (error) {
+      console.error('error', error);
+      res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .json('internal server error');
+    }
+  }
+
+  // controller for logout
+  @UseGuards(JwtAuthGuard)
+  @Post('logout')
+  async logout(@Res() res: Response) {
+    try {
+      console.log('logout');
+      res.status(HttpStatus.OK).json('logout successfully');
     } catch (error) {
       console.error('error', error);
       res
@@ -64,11 +80,13 @@ export class UserController {
     @Res() res: Response,
   ) {
     try {
+      console.log('findUser', identifier);
       const result = await this.userService.findUser(identifier);
+      console.log('result', result);
       if (!result.success) {
-        res.status(HttpStatus.BAD_REQUEST).json(result);
+        return res.status(HttpStatus.OK).json(result);
       }
-      res.status(HttpStatus.ACCEPTED).json(result);
+      res.status(HttpStatus.OK).json(result);
     } catch (error) {
       console.error('error', error);
       res
@@ -77,18 +95,18 @@ export class UserController {
     }
   }
 
-  // for adding a user to the contact list
+  // for sending a friend request
   @UseGuards(JwtAuthGuard)
-  @Post(':userId/contacts/:friendId')
-  async addContact(
+  @Post('add-friend/:friendId/:userId')
+  async addFriend(
     @Param('userId') userId: string,
     @Param('friendId') friendId: string,
     @Res() res: Response,
   ) {
     try {
-      const result = await this.userService.addContact(userId, friendId);
+      const result = await this.userService.sendFriendRequest(userId, friendId);
       if (!result.success) {
-        res.status(HttpStatus.BAD_REQUEST).json(result);
+        return res.status(HttpStatus.ACCEPTED).json(result);
       }
       res.status(HttpStatus.ACCEPTED).json(result);
     } catch (error) {

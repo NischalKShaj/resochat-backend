@@ -5,7 +5,7 @@ import { AuthService } from 'src/auth/auth.service';
 // import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import * as bcrypt from 'bcrypt';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { User } from './schemas/user.schema';
 import { InjectModel } from '@nestjs/mongoose';
 
@@ -20,7 +20,6 @@ export class UserService {
   async login(loginUserDto: LoginUserDto) {
     try {
       const user = await this.userModel.findOne({ email: loginUserDto.email });
-      console.log('user', user);
       if (!user) {
         return { success: false, message: 'user not found' };
       }
@@ -61,10 +60,15 @@ export class UserService {
       });
       const savedUser = await newUser.save();
 
+      const payload = { userId: savedUser._id, email: savedUser.email };
+
+      const token = this.authService.generateToken(payload);
+
       return {
         data: savedUser,
         message: 'user saved successfully',
         success: true,
+        token: token,
       };
     } catch (error) {
       console.error('error', error);
@@ -75,12 +79,17 @@ export class UserService {
   // for searching and finding the user
   async findUser(identifier: string) {
     try {
-      const user = await this.userModel.findOne({
-        $or: [
-          { email: new RegExp('^' + identifier + '$', 'i') },
-          { user: new RegExp('^' + identifier + '$', 'i') },
-        ],
+      // Escape special characters in the identifier
+      const escapedIdentifier = identifier.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        '\\$&',
+      );
+
+      const user = await this.userModel.find({
+        name: new RegExp(escapedIdentifier, 'i'),
       });
+
+      console.log('user', user);
       if (!user) {
         return { success: false, message: 'user not found' };
       }
@@ -91,25 +100,39 @@ export class UserService {
     }
   }
 
-  // for adding the user to the contact list
-  async addContact(userId: string, friendId: string) {
+  // for sending the friend request
+  async sendFriendRequest(userId: string, friendId: string) {
     try {
       const user = await this.userModel.findOne({ _id: userId });
-      if (!user) {
+      const friend = await this.userModel.findOne({ _id: friendId });
+      if (!user || !friend) {
         return { success: false, message: 'user not found' };
       }
-      const updatedUser = await this.userModel.findByIdAndUpdate(
-        { _id: userId },
-        { $addToSet: { contacts: friendId } },
-        { new: true },
+
+      // if the user send the friend request to the same user
+      const alreadyRequested = friend.friendRequests.some(
+        (req) => req.userId.toString() === userId && req.status === 'pending',
       );
+
+      if (alreadyRequested) {
+        return { success: false, message: 'friend request already send' };
+      }
+      const updatedUser = await this.userModel.findByIdAndUpdate(friendId, {
+        $addToSet: {
+          friendRequests: {
+            userId: new Types.ObjectId(userId),
+            status: 'pending',
+            timestamp: new Date(),
+          },
+        },
+      });
       if (!updatedUser) {
         return { success: false, message: 'updating failed' };
       }
       return {
         data: updatedUser,
         success: true,
-        message: 'friend added to the user',
+        message: 'friend request send',
       };
     } catch (error) {
       console.error('error', error);

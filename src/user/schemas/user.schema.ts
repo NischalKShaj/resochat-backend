@@ -17,7 +17,7 @@ export class User extends Document {
   password: string;
 
   @Prop({ required: true })
-  phoneNumber: number;
+  phoneNumber: string;
 
   @Prop({
     required: true,
@@ -27,7 +27,23 @@ export class User extends Document {
   profileImage: string;
 
   @Prop({ type: [{ type: Types.ObjectId, ref: 'User' }] })
-  contacts: User[];
+  contacts: Types.ObjectId[];
+
+  @Prop({ type: [{
+    type: Types.ObjectId,
+    ref: 'User',
+    status: {
+      type: String,
+      enum: ['pending', 'accepted', 'rejected'],
+      default: 'pending'
+    },
+    timestamp: { type: Date, default: Date.now }
+  }] })
+  friendRequests: {
+    userId: Types.ObjectId,
+    status: string,
+    timestamp: Date
+  }[];
 }
 
 export const userSchema = SchemaFactory.createForClass(User);

@@ -4,10 +4,10 @@
 import {
   Controller,
   //   Get,
-  Post,
+  // Post,
   //   Patch,
   Body,
-  //   Delete,
+  Delete,
   Res,
   HttpStatus,
   UseGuards,
@@ -21,8 +21,8 @@ export class ChatController {
   constructor(private readonly chatService: ChatService) {}
 
   @UseGuards(JwtAuthGuard)
-  @Post('delete')
-  async sendMessage(@Body() messageDto: any, @Res() res: Response) {
+  @Delete('delete')
+  async deleteMessage(@Body() messageDto: any, @Res() res: Response) {
     try {
       res.status(HttpStatus.ACCEPTED).json();
     } catch (error) {
