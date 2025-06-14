@@ -19,11 +19,15 @@ import { CreateUserDto } from './dto/create-user.dto';
 // import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { NotificationService } from 'src/notification/notification.service';
 
 // controller for user
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly notificationService: NotificationService,
+  ) {}
 
   // controller for login
   @Post('login')
@@ -104,10 +108,15 @@ export class UserController {
     @Res() res: Response,
   ) {
     try {
+      console.log(friendId, userId);
       const result = await this.userService.sendFriendRequest(userId, friendId);
       if (!result.success) {
         return res.status(HttpStatus.ACCEPTED).json(result);
       }
+      this.notificationService.sendFriendRequest(
+        friendId,
+        `${result.data.name} send you a friend request`,
+      );
       res.status(HttpStatus.ACCEPTED).json(result);
     } catch (error) {
       console.error('error', error);

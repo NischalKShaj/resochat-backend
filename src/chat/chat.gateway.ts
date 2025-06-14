@@ -1,4 +1,12 @@
 // file to create the gateway for the chat
 
 // importing the required modules
-// import { WebSocketGateway } from '@nestjs/websockets';
+import {
+  SubscribeMessage,
+  WebSocketGateway,
+  OnGatewayInit,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  MessageBody,
+  ConnectedSocket,
+} from '@nestjs/websockets';
