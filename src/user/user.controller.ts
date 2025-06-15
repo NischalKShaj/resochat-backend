@@ -113,9 +113,10 @@ export class UserController {
       if (!result.success) {
         return res.status(HttpStatus.ACCEPTED).json(result);
       }
+
       this.notificationService.sendFriendRequest(
         friendId,
-        `${result.data.name} send you a friend request`,
+        `${result.receiver.name} sent you a friend request`,
       );
       res.status(HttpStatus.ACCEPTED).json(result);
     } catch (error) {

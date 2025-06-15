@@ -131,6 +131,7 @@ export class UserService {
       }
       return {
         data: updatedUser,
+        receiver: user,
         success: true,
         message: 'friend request send',
       };

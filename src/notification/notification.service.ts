@@ -3,6 +3,7 @@
 // importing the required modules
 import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { NotificationGateway } from './notification.gateway';
+import { Socket } from 'socket.io';
 
 // setting up the services
 @Injectable()
