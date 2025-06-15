@@ -1,0 +1,23 @@
+// file to set up the enum values of the notification
+
+// importing the required modules
+
+// creating the enum values
+export enum NotificationType {
+  FRIEND_REQUEST = 'FRIEND_REQUEST',
+  MESSAGE = 'MESSAGE',
+  MENTION = 'MENTION',
+  LIKE = 'LIKE',
+  COMMENT = 'COMMENT',
+  SHARE = 'SHARE',
+  ACCEPT_FRIEND_REQUEST = 'ACCEPT_FRIEND_REQUEST',
+  REJECT_FRIEND_REQUEST = 'REJECT_FRIEND_REQUEST',
+  GROUP_INVITATION = 'GROUP_INVITATION',
+  GROUP_REQUEST = 'GROUP_REQUEST',
+  GROUP_JOIN = 'GROUP_JOIN',
+  GROUP_LEAVE = 'GROUP_LEAVE',
+  GROUP_PROMOTE = 'GROUP_PROMOTE',
+  GROUP_DEMOTE = 'GROUP_DEMOTE',
+  GROUP_DELETE = 'GROUP_DELETE',
+  GROUP_UPDATE = 'GROUP_UPDATE',
+}

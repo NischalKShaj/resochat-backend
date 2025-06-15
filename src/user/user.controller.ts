@@ -20,6 +20,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { NotificationService } from 'src/notification/notification.service';
+import { NotificationType } from 'src/notification/notification-type.enum';
 
 // controller for user
 @Controller('user')
@@ -113,6 +114,14 @@ export class UserController {
       if (!result.success) {
         return res.status(HttpStatus.ACCEPTED).json(result);
       }
+
+      // for adding the notification in the db
+      const notification = await this.notificationService.createNotification({
+        senderId: userId,
+        receiverId: friendId,
+        type: NotificationType.FRIEND_REQUEST,
+        message: `${result.receiver.name} sent you a friend request`,
+      });
 
       this.notificationService.sendFriendRequest(
         friendId,
